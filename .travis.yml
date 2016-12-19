@@ -1,28 +1,47 @@
+sudo: required
+dist: precise
 language: cpp
 
-sudo: required
-
-addons:
-    apt:
-        sources:
-            - llvm-toolchain-precise
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
             - ubuntu-toolchain-r-test
-        packages:
-            - clang-3.7
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
             - g++-5
-            - gcc-5
-
-install:
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
-
-compiler:
-  - clang
-  - gcc
+      env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+      env: COMPILER=clang++-3.6
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - clang-3.7
+      env: COMPILER=clang++-3.7
 
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
 
 script: make
