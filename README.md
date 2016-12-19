@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/vienna-cpp-user-group/vie.svg?branch=master)](https://travis-ci.org/vienna-cpp-user-group/vie)
+
 # vie library
 This is the vienna C++ user group's sample implementation of a C++ standard library.
 
