@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/vienna-cpp-user-group/vie.svg?branch=master)](https://travis-ci.org/vienna-cpp-user-group/vie)
+[![Build Status](https://travis-ci.org/vienna-cpp-user-group/vie.svg?branch=master)](https://travis-ci.org/vienna-cpp-user-group/vie) [![Coverage Status](https://coveralls.io/repos/github/vienna-cpp-user-group/slides/badge.svg?branch=master)](https://coveralls.io/github/vienna-cpp-user-group/slides?branch=master)
 
 # vie library
 This is the vienna C++ user group's sample implementation of a C++ standard library.
