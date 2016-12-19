@@ -2,9 +2,13 @@ cmake_minimum_required(VERSION 2.8.7)
 project(vie)
 
 include_directories(include)
-include_directories(test/catch)
+include_directories(test/catch/include)
 
+# use c++14 and specify flags manually for travis
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+
 set(HEADER_FILES vie/file_iterator.hpp
                  vie/forward_list.hpp
                  vie/list.hpp

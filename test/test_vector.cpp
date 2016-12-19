@@ -1,5 +1,5 @@
-#include "catch/include/catch.hpp"
-#include "../include/vie/vector.hpp"
+#include "catch.hpp"
+#include "vie/vector.hpp"
 
 TEST_CASE("vector constructor", "[vector]") {
     vie::simple_vector<int> integers;
