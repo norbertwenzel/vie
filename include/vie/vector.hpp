@@ -57,7 +57,8 @@ class simple_vector {
 public:
 	using value_type = T;
 	using size_type = std::size_t;
-	using differenze_type = std::ptrdiff_t;
+	using difference_type = std::ptrdiff_t;
+    using pointer = value_type *;
 	using reference = value_type &;
 	using const_reference = const value_type &;
     using iterator = detail::simple_vector_iterator<T>;
@@ -134,7 +135,7 @@ public:
                 operator++();
                 return ret;
         }
-        simple_vector_iterator &operator+=(typename simple_vector<T>::differenze_type n)
+        simple_vector_iterator &operator+=(typename simple_vector<T>::difference_type n)
         {
                 curr += n;
         }
@@ -149,11 +150,19 @@ public:
                 operator--();
                 return ret;
         }
-        simple_vector_iterator &operator-=(typename simple_vector<T>::differenze_type n)
+        simple_vector_iterator &operator-=(typename simple_vector<T>::difference_type n)
         {
                 curr -= n;
         }
-        T &operator[](typename simple_vector<T>::differenze_type n)
+        typename simple_vector<T>::difference_type operator+(const simple_vector_iterator& other) const
+        {
+            return curr + other.curr;
+        }
+        typename simple_vector<T>::difference_type operator-(const simple_vector_iterator& other) const
+        {
+            return curr - other.curr;
+        }
+        T &operator[](typename simple_vector<T>::difference_type n)
         {
                 return *(curr + n);
         }
@@ -201,13 +210,13 @@ public:
         
         friend simple_vector_iterator operator+(
                 const simple_vector_iterator &i,
-                typename simple_vector<T>::differenze_type n)
+                typename simple_vector<T>::difference_type n)
         {
                 return i.curr + n;
         }
         friend simple_vector_iterator operator-(
                 const simple_vector_iterator &i,
-                typename simple_vector<T>::differenze_type n)
+                typename simple_vector<T>::difference_type n)
         {
                 return i.curr - n;
         }
