@@ -7,6 +7,8 @@
 #include <type_traits>
 #include <memory>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 namespace vie {
 
 namespace detail {
@@ -19,7 +21,7 @@ class simple_vector {
 	T *begin_;
 	T *end_;
 	T *capacity_;
-	
+
 	void grow(
 		std::size_t n)
 	{
@@ -36,7 +38,7 @@ class simple_vector {
 			for (auto p = begin_; p < end_; ++p) {
 				new (nend) T(*p);
 				++nend;
-				
+
 			}
 		} catch (...) {
 			for (auto p = nbegin; p < nend; ++p)
@@ -55,12 +57,12 @@ class simple_vector {
 	}
 
 public:
-	using value_type = T;
-	using size_type = std::size_t;
-	using difference_type = std::ptrdiff_t;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
     using pointer = value_type *;
-	using reference = value_type &;
-	using const_reference = const value_type &;
+    using reference = value_type &;
+    using const_reference = const value_type &;
     using iterator = detail::simple_vector_iterator<T>;
 
     friend iterator;
@@ -78,12 +80,12 @@ public:
 	{
 		return end_ - begin_;
 	}
-	
+
 	std::size_t capacity()
 	{
 		return capacity_ - begin_;
 	}
-	
+
 	void push_back(const T &value)
 	{
 		grow(size() + 1);
@@ -105,7 +107,14 @@ public:
 };
 
 namespace detail {
-template <typename T> class simple_vector_iterator {
+template <typename T> class simple_vector_iterator : public boost::iterator_facade<
+                                                                simple_vector_iterator<T>,
+                                                                typename vie::simple_vector<T>::value_type,
+                                                                std::random_access_iterator_tag,
+                                                                typename vie::simple_vector<T>::reference,
+                                                                typename vie::simple_vector<T>::difference_type
+                                                                >
+{
         T *curr = nullptr;
         friend simple_vector<T>;
         simple_vector_iterator(T *c) : curr(c)
@@ -115,110 +124,38 @@ public:
         simple_vector_iterator(const simple_vector_iterator &) = default;
         simple_vector_iterator &operator=(const simple_vector_iterator &) = default;
         ~simple_vector_iterator() = default;
-        
-        T &operator*()
-        {
-                return *curr;
-        }
-        T &operator->()
-        {
-                return *curr;
-        }
-        simple_vector_iterator &operator++()
-        {
-                ++curr;
-                return *this;
-        }
-        simple_vector_iterator operator++(int)
-        {
-                simple_vector_iterator ret(*this);
-                operator++();
-                return ret;
-        }
-        simple_vector_iterator &operator+=(typename simple_vector<T>::difference_type n)
-        {
-                curr += n;
-        }
-        simple_vector_iterator &operator--()
-        {
-                --curr;
-                return *this;
-        }
-        simple_vector_iterator operator--(int)
-        {
-                simple_vector_iterator ret(*this);
-                operator--();
-                return ret;
-        }
-        simple_vector_iterator &operator-=(typename simple_vector<T>::difference_type n)
-        {
-                curr -= n;
-        }
-        typename simple_vector<T>::difference_type operator+(const simple_vector_iterator& other) const
-        {
-            return curr + other.curr;
-        }
-        typename simple_vector<T>::difference_type operator-(const simple_vector_iterator& other) const
-        {
-            return curr - other.curr;
-        }
-        T &operator[](typename simple_vector<T>::difference_type n)
-        {
-                return *(curr + n);
-        }
+
         void swap(simple_vector_iterator &other)
         {
                 using std::swap;
                 swap(curr, other.curr);
         }
-        friend bool operator==(
-                const simple_vector_iterator &lhs,
-                const simple_vector_iterator &rhs)
-        {
-                return lhs.curr == rhs.curr;
+
+private:
+        friend class boost::iterator_core_access;
+
+        void increment() {
+            ++curr;
         }
-        friend bool operator!=(
-                const simple_vector_iterator &lhs,
-                const simple_vector_iterator &rhs)
-        {
-                return !(lhs == rhs);
+
+        void decrement() {
+            --curr;
         }
-        friend bool operator<(
-                const simple_vector_iterator &lhs,
-                const simple_vector_iterator &rhs)
-        {
-                return lhs.curr < rhs.curr;
+
+        void advance(typename vie::simple_vector<T>::difference_type n) {
+            curr += n;
         }
-        friend bool operator<=(
-                const simple_vector_iterator &lhs,
-                const simple_vector_iterator &rhs)
-        {
-                return !(rhs < lhs);
+
+        typename vie::simple_vector<T>::difference_type distance_to(const simple_vector_iterator &other) const {
+            return std::distance(curr, other.curr);
         }
-        friend bool operator>=(
-                const simple_vector_iterator &lhs,
-                const simple_vector_iterator &rhs)
-        {
-                return !(lhs < rhs);
+
+        bool equal(const simple_vector_iterator &lhs) const {
+            return this->curr == lhs.curr;
         }
-        friend bool operator>(
-                const simple_vector_iterator &lhs,
-                const simple_vector_iterator &rhs)
-        {
-                return rhs < lhs;
-        }
-        
-        friend simple_vector_iterator operator+(
-                const simple_vector_iterator &i,
-                typename simple_vector<T>::difference_type n)
-        {
-                return i.curr + n;
-        }
-        friend simple_vector_iterator operator-(
-                const simple_vector_iterator &i,
-                typename simple_vector<T>::difference_type n)
-        {
-                return i.curr - n;
+
+        const typename vie::simple_vector<T>::reference dereference() const {
+                return *curr;
         }
 };
 
@@ -239,19 +176,6 @@ template <typename T> detail::simple_vector_iterator<T> simple_vector<T>::end()
 {
         return end_;
 }
-
-}
-
-namespace std {
-
-template <typename T>
-struct iterator_traits<typename vie::detail::simple_vector_iterator<T> > {
-        using difference_type = typename vie::simple_vector<T>::difference_type;
-        using value_type = typename vie::simple_vector<T>::value_type;
-        using pointer = typename vie::simple_vector<T>::pointer;
-        using reference = typename vie::simple_vector<T>::reference;
-        using iterator_category = std::random_access_iterator_tag;
-};
 
 }
 
