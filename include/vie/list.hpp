@@ -5,6 +5,8 @@
 #include <utility>
 #include <iterator>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 namespace vie {
 
 namespace detail {
@@ -25,7 +27,7 @@ class simple_list {
                 { }
         };
         node_base head;
-        
+
         void link(
                 node_base *n)
         {
@@ -87,7 +89,15 @@ public:
 
 namespace detail {
 
-template <typename T> class simple_list_iterator {
+template <typename T> class simple_list_iterator : public boost::iterator_facade<
+                                                                simple_list_iterator<T>,
+                                                                typename vie::simple_list<T>::value_type,
+                                                                std::bidirectional_iterator_tag,
+                                                                typename vie::simple_list<T>::reference,
+                                                                typename vie::simple_list<T>::difference_type
+                                                                >
+
+{
         using node_base = typename simple_list<T>::node_base;
         using node = typename simple_list<T>::node;
         node_base *curr = nullptr;
@@ -99,53 +109,30 @@ public:
         simple_list_iterator(const simple_list_iterator &) = default;
         simple_list_iterator &operator=(const simple_list_iterator &) = default;
         ~simple_list_iterator() = default;
-        
-        T &operator*()
-        {
-                return static_cast<node *>(curr)->value;
-        }
-        T &operator->()
-        {
-                return static_cast<node *>(curr)->value;
-        }
-        simple_list_iterator &operator++()
-        {
-                curr = curr->next;
-                return *this;
-        }
-        simple_list_iterator operator++(int)
-        {
-                simple_list_iterator ret(*this);
-                operator++();
-                return ret;
-        }
-        simple_list_iterator &operator--()
-        {
-                curr = curr->prev;
-                return *this;
-        }
-        simple_list_iterator operator--(int)
-        {
-                simple_list_iterator ret(*this);
-                operator--();
-                return ret;
-        }
+
         void swap(simple_list_iterator &other)
         {
                 using std::swap;
                 swap(curr, other.curr);
         }
-        friend bool operator==(
-                const simple_list_iterator &lhs,
-                const simple_list_iterator &rhs)
-        {
-                return lhs.curr == rhs.curr;
+
+private:
+        friend class boost::iterator_core_access;
+
+        void increment() {
+            curr = curr->next;
         }
-        friend bool operator!=(
-                const simple_list_iterator &lhs,
-                const simple_list_iterator &rhs)
-        {
-                return !(lhs == rhs);
+
+        void decrement() {
+                curr = curr->prev;
+        }
+
+        bool equal(const simple_list_iterator &lhs) const {
+            return this->curr == lhs.curr;
+        }
+
+        const typename vie::simple_list<T>::reference dereference() const {
+                return static_cast<node*>(curr)->value;
         }
 };
 
@@ -168,18 +155,6 @@ template <typename T> detail::simple_list_iterator<T> simple_list<T>::end()
 }
 
 }
-
-
-namespace std {
-
-template <typename T>
-struct iterator_traits<typename vie::detail::simple_list_iterator<T> > {
-        using difference_type = typename vie::simple_list<T>::difference_type;
-        using value_type = typename vie::simple_list<T>::value_type;
-        using pointer = typename vie::simple_list<T>::pointer;
-        using reference = typename vie::simple_list<T>::reference;
-        using iterator_category = std::bidirectional_iterator_tag;
-};
 
 }
 
