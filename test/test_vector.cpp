@@ -3,9 +3,6 @@
 
 TEST_CASE("vector constructor", "[vector]") {
     vie::simple_vector<int> integers;
-
-    REQUIRE(integers.capacity() == 0);
-    REQUIRE(integers.size() == 0);
 }
 
 TEST_CASE("vector size()", "[vector]") {
@@ -20,6 +17,33 @@ TEST_CASE("vector size()", "[vector]") {
         doubles.push_back(3.0);
 
         REQUIRE(doubles.size() == 3);
+    }
+}
+
+TEST_CASE("vector capacity()", "[vector]") {
+    vie::simple_vector<float> floats;
+
+    SECTION("initial capacity is zero") {
+        REQUIRE(floats.capacity() == 0);
+    }
+
+    SECTION("growing is logarithmic") {
+        floats.push_back(1.0F);
+        REQUIRE(floats.capacity() == 8);
+
+        floats.push_back(2.0f);
+        floats.push_back(3.0f);
+        floats.push_back(4.0f);
+        floats.push_back(5.0f);
+        floats.push_back(6.0f);
+        floats.push_back(7.0f);
+        floats.push_back(8.0f);
+
+        REQUIRE(floats.capacity() == 8);
+
+        floats.push_back(9.0f);
+
+        REQUIRE(floats.capacity() == 16);
     }
 }
 
