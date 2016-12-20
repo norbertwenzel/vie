@@ -6,9 +6,14 @@
 #include <iterator>
 #include <cstdio>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 namespace vie {
 
-class file_iterator {
+class file_iterator : public boost::iterator_facade<file_iterator,
+                                                    char,
+                                                    std::input_iterator_tag>
+{
         FILE *fp = nullptr;
         int curr = EOF;
 public:
@@ -17,48 +22,21 @@ public:
         file_iterator(const file_iterator &) = default;
         file_iterator &operator=(const file_iterator &) = default;
         ~file_iterator() = default;
-        
-        char operator *() { return curr; }
-        char operator ->() { return curr; }
-        file_iterator &operator++()
-        {
-                curr = fgetc(fp);
-                return *this;
+
+private:
+        friend class boost::iterator_core_access;
+
+        void increment() {
+            curr = fgetc(fp);
         }
-        file_iterator operator++(int)
-        {
-                file_iterator ret(*this);
-                operator++();
-                return ret;
+
+        bool equal(const file_iterator &lhs) const {
+            return this->curr == lhs.curr;
         }
-        friend bool operator==(
-                const file_iterator &lhs,
-                const file_iterator &rhs)
-        {
-                return lhs.curr == rhs.curr;
-        }
-        friend bool operator!=(
-                const file_iterator &lhs,
-                const file_iterator &rhs)
-        {
-                return !(lhs == rhs);
-        }
+
+        const int& dereference() const { return curr; }
 };
 
 }
-
-namespace std {
-
-template <>
-struct iterator_traits<vie::file_iterator> {
-        using difference_type = std::ptrdiff_t;
-        using value_type = char;
-        using pointer = char *;
-        using reference = char &;
-        using iterator_category = std::input_iterator_tag;
-};
-
-}
-
 
 #endif // VIE_FILE_ITERATOR_HPP_INCLUDED
