@@ -5,6 +5,8 @@
 #include <utility>
 #include <iterator>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 namespace vie {
 
 namespace detail {
@@ -43,14 +45,21 @@ public:
                 auto n = new node{ first, value };
                 first = n;
         }
-        
+
         iterator begin();
         iterator end();
 };
 
 namespace detail {
 
-template <typename T> class simple_forward_list_iterator {
+template <typename T> class simple_forward_list_iterator : public boost::iterator_facade<
+                                                                        simple_forward_list_iterator<T>,
+                                                                        typename vie::simple_forward_list<T>::value_type,
+                                                                        std::forward_iterator_tag,
+                                                                        typename vie::simple_forward_list<T>::reference,
+                                                                        typename vie::simple_forward_list<T>::difference_type
+                                                                        >
+{
         using node = typename simple_forward_list<T>::node;
         node *curr = nullptr;
         friend simple_forward_list<T>;
@@ -61,42 +70,26 @@ public:
         simple_forward_list_iterator(const simple_forward_list_iterator &) = default;
         simple_forward_list_iterator &operator=(const simple_forward_list_iterator &) = default;
         ~simple_forward_list_iterator() = default;
-        
-        T &operator*()
-        {
-                return curr->value;
-        }
-        T &operator->()
-        {
-                return curr->value;
-        }
-        simple_forward_list_iterator &operator++()
-        {
-                curr = curr->next;
-                return *this;
-        }
-        simple_forward_list_iterator operator++(int)
-        {
-                simple_forward_list_iterator ret(*this);
-                operator++();
-                return ret;
-        }
+
         void swap(simple_forward_list_iterator &other)
         {
                 using std::swap;
                 swap(curr, other.curr);
         }
-        friend bool operator==(
-                const simple_forward_list_iterator &lhs,
-                const simple_forward_list_iterator &rhs)
-        {
-                return lhs.curr == rhs.curr;
+
+private:
+        friend class boost::iterator_core_access;
+
+        void increment() {
+            curr = curr->next;
         }
-        friend bool operator!=(
-                const simple_forward_list_iterator &lhs,
-                const simple_forward_list_iterator &rhs)
-        {
-                return !(lhs == rhs);
+
+        bool equal(const simple_forward_list_iterator &lhs) const {
+            return this->curr == lhs.curr;
+        }
+
+        const typename vie::simple_forward_list<T>::reference dereference() const {
+                return curr.value;
         }
 };
 
@@ -105,7 +98,7 @@ void swap(simple_forward_list_iterator<T> &l, simple_forward_list_iterator<T> &r
 {
         l.swap(r);
 }
-        
+
 }
 
 template <typename T> detail::simple_forward_list_iterator<T> simple_forward_list<T>::begin()
@@ -117,19 +110,6 @@ template <typename T> detail::simple_forward_list_iterator<T> simple_forward_lis
 {
         return {};
 }
-
-}
-
-namespace std {
-
-template <typename T>
-struct iterator_traits<typename vie::detail::simple_forward_list_iterator<T> > {
-        using difference_type = typename vie::simple_forward_list<T>::difference_type;
-        using value_type = typename vie::simple_forward_list<T>::value_type;
-        using pointer = typename vie::simple_forward_list<T>::pointer;
-        using reference = typename vie::simple_forward_list<T>::reference;
-        using iterator_category = std::forward_iterator_tag;
-};
 
 }
 
